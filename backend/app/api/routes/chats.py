@@ -1,0 +1,40 @@
+from fastapi import APIRouter, HTTPException
+
+from app.schemas.chat import Chat, MessageCreate
+
+router = APIRouter()
+
+# In-memory store as a placeholder until a real database is wired up.
+_chats: dict[int, Chat] = {}
+_next_id = 1
+
+
+@router.get("", response_model=list[Chat])
+def list_chats():
+    return list(_chats.values())
+
+
+@router.post("", response_model=Chat)
+def create_chat():
+    global _next_id
+    chat = Chat(id=_next_id, title=f"Chat {_next_id}", messages=[])
+    _chats[chat.id] = chat
+    _next_id += 1
+    return chat
+
+
+@router.delete("/{chat_id}")
+def delete_chat(chat_id: int):
+    if chat_id not in _chats:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    del _chats[chat_id]
+    return {"ok": True}
+
+
+@router.post("/{chat_id}/messages", response_model=Chat)
+def add_message(chat_id: int, message: MessageCreate):
+    chat = _chats.get(chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    chat.messages.append(message.content)
+    return chat
