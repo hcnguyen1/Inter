@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.chat import Chat, MessageCreate
+from app.schemas.chat import Chat, Message, MessageCreate
+from app.services.llm import get_completion
 
 router = APIRouter()
 
@@ -36,5 +37,13 @@ def add_message(chat_id: int, message: MessageCreate):
     chat = _chats.get(chat_id)
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    chat.messages.append(message.content)
+
+    chat.messages.append(Message(role="user", content=message.content))
+
+    try:
+        reply = get_completion(chat.messages)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"LLM request failed: {exc}") from exc
+
+    chat.messages.append(Message(role="assistant", content=reply))
     return chat
