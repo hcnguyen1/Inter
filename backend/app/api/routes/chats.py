@@ -18,7 +18,7 @@ def list_chats():
 @router.post("", response_model=Chat)
 def create_chat():
     global _next_id
-    chat = Chat(id=_next_id, title=f"Chat {_next_id}", messages=[])
+    chat = Chat(id=_next_id, title="New Chat", messages=[])
     _chats[chat.id] = chat
     _next_id += 1
     return chat

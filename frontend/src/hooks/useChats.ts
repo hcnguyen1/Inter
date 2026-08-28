@@ -4,13 +4,14 @@ import { createChat, deleteChat, listChats, renameChat, sendMessage, type Chat }
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
-  const [isSending, setIsSending] = useState(false);
+  const [sendingChatIds, setSendingChatIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     listChats().then(setChats).catch((err) => console.error("Failed to load chats", err));
   }, []);
 
   const activeChat = chats.find((chat) => chat.id === activeChatId) ?? null;
+  const isSending = activeChatId !== null && sendingChatIds.has(activeChatId);
 
   const newChat = async () => {
     const chat = await createChat();
@@ -32,7 +33,7 @@ export function useChats() {
   const submitMessage = async (content: string) => {
     if (!activeChatId) return;
     const chatId = activeChatId;
-    setIsSending(true);
+    setSendingChatIds((prev) => new Set(prev).add(chatId));
     // Show the user's message right away instead of waiting for the assistant reply.
     setChats((prev) =>
       prev.map((chat) =>
@@ -47,7 +48,11 @@ export function useChats() {
     } catch (err) {
       console.error("Failed to send message", err);
     } finally {
-      setIsSending(false);
+      setSendingChatIds((prev) => {
+        const next = new Set(prev);
+        next.delete(chatId);
+        return next;
+      });
     }
   };
 

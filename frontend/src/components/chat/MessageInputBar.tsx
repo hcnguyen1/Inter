@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+/* User's message input bar */
+
 type MessageInputBarProps = {
   hasActiveChat: boolean;
   isSending: boolean;

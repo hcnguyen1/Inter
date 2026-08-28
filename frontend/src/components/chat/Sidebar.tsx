@@ -4,6 +4,8 @@ import type { Chat } from "@/lib/api";
 import { ChatListItem } from "./ChatListItem";
 import { UserProfile } from "./UserProfile";
 
+/* Sidebar component */
+
 type SidebarProps = {
   isCompact: boolean;
   onToggleCompact: () => void;
@@ -46,6 +48,9 @@ export function Sidebar({
       </button>
       {!isCompact && (
         <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
+          <div className="text-[13px] font-medium text-slate-500">
+            Recent
+          </div>
           {chats.length === 0 ? (
             <div className="text-xs text-slate-400">
               Start a new conversation or continue one from the sidebar.
