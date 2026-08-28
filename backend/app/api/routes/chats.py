@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.chat import Chat, Message, MessageCreate
+from app.schemas.chat import Chat, ChatUpdate, Message, MessageCreate
 from app.services.llm import get_completion
 
 router = APIRouter()
@@ -30,6 +30,15 @@ def delete_chat(chat_id: int):
         raise HTTPException(status_code=404, detail="Chat not found")
     del _chats[chat_id]
     return {"ok": True}
+
+
+@router.patch("/{chat_id}", response_model=Chat)
+def rename_chat(chat_id: int, update: ChatUpdate):
+    chat = _chats.get(chat_id)
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    chat.title = update.title
+    return chat
 
 
 @router.post("/{chat_id}/messages", response_model=Chat)

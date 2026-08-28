@@ -16,3 +16,7 @@ class Chat(BaseModel):
     id: int
     title: str
     messages: list[Message] = []
+
+
+class ChatUpdate(BaseModel):
+    title: str
