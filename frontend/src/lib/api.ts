@@ -3,6 +3,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/a
 export type Message = {
   role: "user" | "assistant";
   content: string;
+  timestamp: string;
 };
 
 export type Chat = {

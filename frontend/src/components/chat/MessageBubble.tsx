@@ -5,7 +5,6 @@ import type { Message } from "@/lib/api";
 
 /* User and AI's message bubbles */
 /* Features to add:
-   - Timestamps
    - Read receipts
    - Message reactions
 */
@@ -42,21 +41,33 @@ const markdownComponents: Components = {
 };
 
 export function MessageBubble({ message }: { message: Message }) {
+  const time = new Date(message.timestamp).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
   return (
     <div
-      className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
+      className={`flex max-w-[75%] flex-col rounded-2xl px-4 py-2 text-sm ${
         message.role === "user"
           ? "self-end bg-slate-100 text-slate-900"
           : "self-start bg-slate-700 text-slate-100"
       }`}
     >
-      {message.role === "assistant" ? (
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-          {message.content}
-        </ReactMarkdown>
-      ) : (
-        message.content
-      )}
+      <div>
+        {message.role === "assistant" ? (
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {message.content}
+          </ReactMarkdown>
+        ) : (
+          message.content
+        )}
+      </div>
+      <span
+        className={`mt-1 text-[10px] ${message.role === "user" ? "text-slate-500" : "text-slate-400"}`}
+      >
+        {time}
+      </span>
     </div>
   );
 }

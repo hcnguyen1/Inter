@@ -38,7 +38,13 @@ export function useChats() {
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === chatId
-          ? { ...chat, messages: [...chat.messages, { role: "user", content }] }
+          ? {
+              ...chat,
+              messages: [
+                ...chat.messages,
+                { role: "user", content, timestamp: new Date().toISOString() },
+              ],
+            }
           : chat
       )
     );

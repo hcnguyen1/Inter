@@ -20,7 +20,7 @@ export function ConversationView({ activeChat, isSending }: ConversationViewProp
   }, [messages]);
 
   return (
-    <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded bg-slate-800 p-4">
+    <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded p-4">
       {!activeChat ? (
         <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
           Click &ldquo;+ New chat&rdquo; to start a conversation.
