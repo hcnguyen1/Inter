@@ -72,6 +72,30 @@ export function useChats() {
       setChats((prev) => prev.map((chat) => (chat.id === chatId ? updated : chat)));
     } catch (err) {
       console.error("Failed to send message", err);
+      const chatIsGone = err instanceof Error && err.message.includes("(404)");
+      if (chatIsGone) {
+        // Backend restarted and lost its in-memory chats; this chat no longer exists there.
+        setChats((prev) => prev.filter((chat) => chat.id !== chatId));
+        setActiveChatId((prev) => (prev === chatId ? null : prev));
+      } else {
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === chatId
+              ? {
+                  ...chat,
+                  messages: [
+                    ...chat.messages,
+                    {
+                      role: "assistant",
+                      content: "⚠️ Failed to get a response. Please try again.",
+                      timestamp: new Date().toISOString(),
+                    },
+                  ],
+                }
+              : chat
+          )
+        );
+      }
     } finally {
       setSendingChatIds((prev) => {
         const next = new Set(prev);

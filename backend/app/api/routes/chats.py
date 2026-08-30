@@ -3,6 +3,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from app.schemas.chat import Chat, ChatUpdate, Message, MessageCreate
 from app.services.attachments import extract_text
 from app.services.llm import get_completion
+from app.services.tools import write_file
 
 router = APIRouter()
 
@@ -73,6 +74,8 @@ async def add_message_with_file(chat_id: int, content: str = Form(""), file: Upl
 
     try:
         extracted = extract_text(file.filename or "file", raw)
+        if file.filename:
+            write_file(file.filename, extracted)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Could not read file: {exc}") from exc
 
