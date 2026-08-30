@@ -13,9 +13,10 @@ export type Chat = {
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const isFormData = init?.body instanceof FormData;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: isFormData ? init?.headers : { "Content-Type": "application/json", ...init?.headers },
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
@@ -48,4 +49,11 @@ export function sendMessage(chatId: number, content: string): Promise<Chat> {
     method: "POST",
     body: JSON.stringify({ content }),
   });
+}
+
+export function sendMessageWithFile(chatId: number, content: string, file: File): Promise<Chat> {
+  const formData = new FormData();
+  formData.append("content", content);
+  formData.append("file", file);
+  return request(`/chats/${chatId}/messages/file`, { method: "POST", body: formData });
 }

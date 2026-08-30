@@ -1,13 +1,22 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Message } from "@/lib/api";
+import { FileDownloadBlock } from "./FileDownloadBlock";
 
 /* User and AI's message bubbles */
 /* Features to add:
    - Read receipts
    - Message reactions
 */
+
+const FILE_FENCE_PATTERN = /^language-file:(.+)$/;
+
+function flattenToText(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(flattenToText).join("");
+  return "";
+}
 
 const markdownComponents: Components = {
   p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -25,19 +34,36 @@ const markdownComponents: Components = {
       {children}
     </blockquote>
   ),
-  pre: ({ children }) => (
-    <pre className="mb-2 overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs last:mb-0 [&>code]:bg-transparent [&>code]:p-0">
-      {children}
-    </pre>
-  ),
-  code: ({ className, children, ...props }: ComponentProps<"code">) => (
-    <code
-      className={`rounded bg-slate-900/70 px-1 py-0.5 font-mono text-xs ${className ?? ""}`}
-      {...props}
-    >
-      {children}
-    </code>
-  ),
+  pre: ({ children }) => {
+    const child = Array.isArray(children) ? children[0] : children;
+    const codeClassName =
+      child && typeof child === "object" && "props" in child
+        ? (child.props as { className?: string }).className
+        : undefined;
+    // A file: fence renders its own download chip, so skip the surrounding code-block box.
+    if (codeClassName && FILE_FENCE_PATTERN.test(codeClassName)) {
+      return <>{children}</>;
+    }
+    return (
+      <pre className="mb-2 overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs last:mb-0 [&>code]:bg-transparent [&>code]:p-0">
+        {children}
+      </pre>
+    );
+  },
+  code: ({ className, children, ...props }: ComponentProps<"code">) => {
+    const fileMatch = FILE_FENCE_PATTERN.exec(className ?? "");
+    if (fileMatch) {
+      return <FileDownloadBlock filename={fileMatch[1]} content={flattenToText(children).replace(/\n$/, "")} />;
+    }
+    return (
+      <code
+        className={`rounded bg-slate-900/70 px-1 py-0.5 font-mono text-xs ${className ?? ""}`}
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
 };
 
 export function MessageBubble({ message }: { message: Message }) {

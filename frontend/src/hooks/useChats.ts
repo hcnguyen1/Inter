@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { createChat, deleteChat, listChats, renameChat, sendMessage, type Chat } from "@/lib/api";
+import {
+  createChat,
+  deleteChat,
+  listChats,
+  renameChat,
+  sendMessage,
+  sendMessageWithFile,
+  type Chat,
+} from "@/lib/api";
 
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -32,7 +40,18 @@ export function useChats() {
 
   const submitMessage = async (content: string) => {
     if (!activeChatId) return;
-    const chatId = activeChatId;
+    await sendPendingMessage(activeChatId, content, () => sendMessage(activeChatId, content));
+  };
+
+  const submitMessageWithFile = async (content: string, file: File) => {
+    if (!activeChatId) return;
+    const pendingContent = content ? `${content}\n\n📎 ${file.name}` : `📎 ${file.name}`;
+    await sendPendingMessage(activeChatId, pendingContent, () =>
+      sendMessageWithFile(activeChatId, content, file)
+    );
+  };
+
+  const sendPendingMessage = async (chatId: number, pendingContent: string, request: () => Promise<Chat>) => {
     setSendingChatIds((prev) => new Set(prev).add(chatId));
     // Show the user's message right away instead of waiting for the assistant reply.
     setChats((prev) =>
@@ -42,14 +61,14 @@ export function useChats() {
               ...chat,
               messages: [
                 ...chat.messages,
-                { role: "user", content, timestamp: new Date().toISOString() },
+                { role: "user", content: pendingContent, timestamp: new Date().toISOString() },
               ],
             }
           : chat
       )
     );
     try {
-      const updated = await sendMessage(chatId, content);
+      const updated = await request();
       setChats((prev) => prev.map((chat) => (chat.id === chatId ? updated : chat)));
     } catch (err) {
       console.error("Failed to send message", err);
@@ -72,5 +91,6 @@ export function useChats() {
     removeChat,
     rename,
     submitMessage,
+    submitMessageWithFile,
   };
 }

@@ -18,6 +18,7 @@ export default function ChatPage() {
     removeChat,
     rename,
     submitMessage,
+    submitMessageWithFile,
   } = useChats();
 
   return (
@@ -37,7 +38,12 @@ export default function ChatPage() {
         {/* Chat panel */}
         <main className="flex flex-1 flex-col gap-4 p-4">
           <ConversationView activeChat={activeChat} isSending={isSending} />
-          <MessageInputBar hasActiveChat={!!activeChat} isSending={isSending} onSend={submitMessage} />
+          <MessageInputBar
+            hasActiveChat={!!activeChat}
+            isSending={isSending}
+            onSend={submitMessage}
+            onSendWithFile={submitMessageWithFile}
+          />
         </main>
       </div>
     </div>
